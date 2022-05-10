@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+<mapper namespace="Total">
+
+<!-- 회원가입 -->
+<insert id="user_Insert" parameterType="TotalVo">
+ <![CDATA[
+ 	insert into users(id, pwd, name, tel, email, postcode, address, detailAddress, extraAddress)
+ 	 values(#{id}, #{pwd}, #{name}, #{tel}, #{email}, #{postcode}, #{address}, #{detailAddress}, #{extraAddress})
+ ]]>
+</insert>
+
+<!-- 회원목록 -->
+<select id="user_Select" resultType="TotalVo" parameterType="TotalVo">
+ 	select * from users
+ 	where 1=1
+ 	<if test="ch1=='id'">
+ 	<![CDATA[
+ 		and id like '%'||#{ch2}||'%'
+ 	]]>
+ 	</if>
+ 	<if test="ch1=='name'">
+ 	<![CDATA[
+		and name like '%'||#{ch2}||'%'
+	]]>
+	</if>
+</select>
+
+<!-- 로그인 체크 -->
+<select id="user_LoginCk" resultType="TotalVo" parameterType="TotalVo">
+   <![CDATA[   
+     select * from users where id=#{id} and pwd=#{pwd}
+   ]]>
+</select>
+
+<!-- 중복 아이디 체크 -->
+<select id="user_UserCk" resultType="TotalVo" parameterType="TotalVo">
+   <![CDATA[   
+     select * from users where id=#{id}
+   ]]>
+</select>
+
+<!-- 회원정보 수정화면 -->
+<select id="user_Content" resultType="TotalVo" parameterType="TotalVo">
+	select * from users where id=#{id}
+</select>
+
+<!-- 회원정보 수정 -->
+<update id="user_Update" parameterType="TotalVo">
+	update users set name=#{name}, tel=#{tel}, email=#{email}, postcode=#{postcode}, address=#{address}, detailAddress=#{detailAddress}, extraAddress=#{extraAddress} where id=#{id}
+</update>
+
+<!-- 회원탈퇴 -->
+<delete id="user_Delete" parameterType="TotalVo">
+	delete from users where id=#{id}
+</delete>
+
+
+
+
+
+
+<!-- 게시물 보기 -->
+<select id="board_Select" resultType="TotalVo">
+	<![CDATA[
+		select rownum, K.* 
+			from 
+			(select rownum as rnum, M.*
+				from (select * from board 
+						order by idx desc) M
+				where rownum <= #{endIdx}) K
+		where rnum >= #{startIdx}
+	]]>
+</select>
+
+<!-- 게시물 수 -->
+<select id="board_Count" resultType="TotalVo" parameterType="TotalVo">
+	select count(*) as tc from board
+</select>
+
+<!-- 관리자가 게시물 작성하기 -->
+<insert id="board_Insert" parameterType="TotalVo">
+ <![CDATA[
+ 	insert into board(idx, id, rdate, sname, phone, mmenu, open, off, instar, postcode, address, detailAddress, extraAddress, img)
+ 	 values(board_idx.nextval, #{id}, #{rdate}, #{sname}, #{phone}, #{mmenu}, #{open}, #{off}, #{instar}, #{postcode}, #{address}, #{detailAddress}, #{extraAddress}, #{img})
+ ]]>
+</insert>
+
+<!-- 게시판 내용 상세보기 -->
+<select id="board_Content" resultType="TotalVo" parameterType="TotalVo">
+	select * from board where idx=#{idx}
+</select>
+
+<!-- 관리자가 게시물 수정하기 -->
+<!-- 이미지 수정X -->
+<update id="board_Update" parameterType="TotalVo">
+	<![CDATA[
+		update board set id=#{id}, udate=#{udate}, sname=#{sname}, phone=#{phone}, mmenu=#{mmenu}, open=#{open}, off=#{off}, instar=#{instar}, postcode=#{postcode}, address=#{address}, detailAddress=#{detailAddress}, extraAddress=#{extraAddress} where idx=#{idx}
+	]]>
+</update>
+<!-- 이미지 수정O -->
+<update id="board_UpdateFile" parameterType="TotalVo">
+	<![CDATA[
+		update board set id=#{id}, udate=#{udate}, sname=#{sname}, phone=#{phone}, mmenu=#{mmenu}, open=#{open}, off=#{off}, instar=#{instar}, postcode=#{postcode}, address=#{address}, detailAddress=#{detailAddress}, extraAddress=#{extraAddress}, img=#{img} where idx=#{idx}
+	]]>
+</update>
+
+<!-- 관리자가 게시물 삭제 -->
+<delete id="board_Delete" parameterType="TotalVo">
+	delete from board where idx=#{idx}
+</delete>
+
+
+
+
+
+
+
+
+<!-- 댓글 달기 -->
+<insert id="comments_Insert" parameterType="TotalVo">
+	insert into comments values(comments_num.nextval, #{idx}, #{id}, #{detail})
+</insert>
+
+<!-- idx에 맞는 댓글 보기 -->
+<select id="comments_Content" resultType="TotalVo" parameterType="TotalVo">
+	<!-- 
+	select num, B.idx as idx, C.idx as c_idx, B.id as id, C.id as c_id, sname, phone, open, address, detailAddress, detail
+    from board B join comments C
+    on B.idx=C.idx
+    where B.idx=#{idx}
+     -->    
+    select * from comments where idx=#{idx} order by num asc
+</select>
+
+<!-- 선택된 댓글 보기 -->
+<select id="comments_Select" resultType="TotalVo" parameterType="TotalVo">
+     select * from comments where num=#{num}
+</select>
+
+<!-- 게시물별 댓글 갯수 확인 -->
+<select id="comments_Count" resultType="int" parameterType="TotalVo">
+	select count(num) from comments A join board B on A.#{idx}=B.#{idx}
+</select>
+
+
+<!-- 게시글 삭제될 때 댓글도 삭제 -->
+<delete id="comments_Delete_Idx" parameterType="TotalVo">
+	delete from comments where idx=#{idx}
+</delete>
+
+<!-- 댓글만 삭제 -->
+<delete id="comments_Delete" parameterType="TotalVo">
+	delete from comments where num=#{num}
+</delete>
+
+<!-- 댓글 수정 -->
+<update id="comments_Update" parameterType="TotalVo">
+	update comments set detail=#{detail} where num=#{num}
+</update>
+
+</mapper>
